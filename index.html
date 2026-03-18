@@ -71,7 +71,23 @@ html, body {
   #btn-maximize { display:none; }
   .splash-facts { grid-template-columns:1fr 1fr; }
   #splash-inner { padding:24px 20px 20px; }
-  #leg-overlay { bottom:8px; left:8px; padding:10px 13px; min-width:170px; max-height:55vh; overflow-y:auto; }
+  #leg-overlay {
+    bottom:0; left:0; right:0; border-radius:0;
+    padding:0; min-width:unset; max-width:unset;
+    box-shadow:0 -2px 12px rgba(0,0,0,0.15);
+    transform:translateY(100%);
+    transition:transform 0.25s ease;
+  }
+  #leg-overlay.mob-open { transform:translateY(0); }
+  #leg-overlay .lo-inner { padding:12px 16px 16px; overflow-y:auto; max-height:45vh; }
+  #leg-tab {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 16px; background:#fff;
+    border-top:2px solid #c8900a; cursor:pointer;
+    font-size:13px; font-weight:700; color:#333;
+    font-family:'Source Sans 3','Arial Narrow',Arial,sans-serif;
+  }
+  #leg-tab .tab-arr { font-size:11px; color:#999; }
   #leg-overlay .lo-name { font-size:13px; }
   #leg-overlay .lo-sub { font-size:11px; }
   #leg-overlay .lo-flag { font-size:10px; margin-bottom:5px; }
@@ -517,6 +533,10 @@ body.map-maximized #btn-maximize { top:12px; left:12px; }
 <div id="map-wrap">
   <div id="map"></div>
   <div id="leg-overlay">
+    <div id="leg-tab" onclick="this.parentElement.classList.toggle('mob-open');this.querySelector('.tab-arr').textContent=this.parentElement.classList.contains('mob-open')?'▼':'▲';" style="display:none;">
+      <span>Legend</span><span class="tab-arr">▲</span>
+    </div>
+    <div class="lo-inner">
     <div class="lo-group">
       <div class="lo-flag"><span style="display:inline-block;background:#1a5fa8;color:#fff;font-size:8px;font-weight:700;padding:1px 4px;border-radius:2px;letter-spacing:0.3px;margin-right:3px;">KR</span>South Korea</div>
       <div class="lo-row" onclick="toggleV('440452000',this)"><div class="lo-line onnuri" style="border-color:#0e8a72"></div><div><div class="lo-name">ONNURI</div><div class="lo-sub">Research Vessel</div></div></div>
@@ -533,6 +553,7 @@ body.map-maximized #btn-maximize { top:12px; left:12px; }
     </div>
     <hr class="lo-sep">
     <div class="lo-row" style="cursor:default;"><div class="lo-pmz"></div><span class="lo-name" style="font-weight:400;color:#555;font-size:11px;">PMZ boundary</span></div>
+    </div><!-- /lo-inner -->
   </div>
 
   <button id="btn-maximize" title="Maximize map (M)">⛶</button>
@@ -1130,8 +1151,19 @@ function applyLayout() {
   const btn = document.getElementById('leg-toggle-btn');
   const content = document.getElementById('leg-collapsed-content');
   if(btn) btn.style.display = mobile ? 'flex' : 'none';
-  if(content && mobile) content.classList.remove('open'); // collapsed by default
-  if(content && !mobile) content.classList.add('open');   // always open on desktop
+  if(content && mobile) content.classList.remove('open');
+  if(content && !mobile) content.classList.add('open');
+  // Show legend tab on mobile, hide on desktop
+  const legTab = document.getElementById('leg-tab');
+  const legOverlay = document.getElementById('leg-overlay');
+  if(legTab) legTab.style.display = mobile ? 'flex' : 'none';
+  if(legOverlay && mobile) legOverlay.classList.remove('mob-open');
+  // Zoom out on mobile so more context is visible
+  if(mobile) {
+    map.setView([35.0, 123.2], 6.5, {animate:false});
+  } else {
+    map.setView([35.1, 123.0], 8, {animate:false});
+  }
   map.invalidateSize();
 }
 window.addEventListener('resize', applyLayout);
